@@ -29,6 +29,7 @@ const elements = {
     cardsContainer: document.getElementById('cards-container'),
     exportCsvBtn: document.getElementById('export-csv-btn'),
     themeCheckbox: document.getElementById('theme-checkbox'),
+    resetFiltersBtn: document.getElementById('reset-filters-btn'),
     
     // Tweet Drawer Elements
     tweetDrawer: document.getElementById('tweet-drawer'),
@@ -111,6 +112,22 @@ function setupEventListeners() {
     // Export and Theme switches
     elements.exportCsvBtn.addEventListener('click', exportToCSV);
     elements.themeCheckbox.addEventListener('change', toggleTheme);
+    
+    // Reset filters button
+    if (elements.resetFiltersBtn) {
+        elements.resetFiltersBtn.addEventListener('click', () => {
+            elements.searchInput.value = '';
+            updatesState.searchQuery = '';
+            elements.clearSearch.style.display = 'none';
+            
+            elements.categoryFilters.forEach(btn => btn.classList.remove('active'));
+            const allBtn = Array.from(elements.categoryFilters).find(btn => btn.getAttribute('data-category') === 'all');
+            if (allBtn) allBtn.classList.add('active');
+            updatesState.currentCategory = 'all';
+            
+            applyFiltersAndRender();
+        });
+    }
     
     // Post and Copy
     elements.copyTweetBtn.addEventListener('click', copyTweetToClipboard);
