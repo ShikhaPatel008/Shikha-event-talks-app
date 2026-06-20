@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Track Google Cloud BigQuery release notes and instantly share updates to X (formerly Twitter) with custom formatting.">
+    <title>BigQuery Release Radar & Tweeter</title>
+    
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Application Stylesheet -->
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar Navigation & Filters -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="brand">
+                    <div class="brand-logo">
+                        <i class="fa-solid fa-satellite-dish"></i>
+                    </div>
+                    <div>
+                        <h1>BQ Release Radar</h1>
+                        <span class="sub-brand">Live Feed Monitor</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-content">
+                <!-- Action Controls -->
+                <div class="control-group">
+                    <button id="refresh-btn" class="btn btn-primary btn-block">
+                        <i id="spinner-icon" class="fa-solid fa-arrows-rotate"></i>
+                        <span>Refresh Feed</span>
+                    </button>
+                </div>
+
+                <!-- Feed Stats -->
+                <div class="stats-panel">
+                    <h3>Feed Summary</h3>
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <span class="stat-num" id="stat-total">0</span>
+                            <span class="stat-label">Total</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-num color-feature" id="stat-features">0</span>
+                            <span class="stat-label">Features</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-num color-issue" id="stat-issues">0</span>
+                            <span class="stat-label">Issues</span>
+                        </div>
+                        <div class="stat-card">
+                            <span class="stat-num color-announcement" id="stat-announcements">0</span>
+                            <span class="stat-label">Announcements</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Search & Filters -->
+                <div class="filter-section">
+                    <div class="search-box">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <input type="text" id="search-input" placeholder="Search updates...">
+                        <button id="clear-search" class="clear-btn" style="display: none;">
+                            <i class="fa-solid fa-xmark"></i>
+                        </button>
+                    </div>
+
+                    <div class="filter-group">
+                        <label>Category Filter</label>
+                        <div class="category-filters">
+                            <button class="filter-tag active" data-category="all">All</button>
+                            <button class="filter-tag" data-category="Feature">Features</button>
+                            <button class="filter-tag" data-category="Announcement">Announcements</button>
+                            <button class="filter-tag" data-category="Issue">Issues</button>
+                            <button class="filter-tag" data-category="General">General</button>
+                        </div>
+                    </div>
+
+                    <div class="filter-group">
+                        <label>Sort Order</label>
+                        <select id="sort-select" class="form-select">
+                            <option value="newest">Newest First</option>
+                            <option value="oldest">Oldest First</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <p>Google Cloud BigQuery Feed</p>
+                <span class="feed-status">Last updated: <span id="last-updated-time">Never</span></span>
+            </div>
+        </aside>
+
+        <!-- Main Workspace -->
+        <main class="main-content">
+            <!-- Alert Banner -->
+            <div id="error-banner" class="alert alert-danger" style="display: none;">
+                <i class="fa-solid fa-circle-exclamation"></i>
+                <span class="alert-text">Error fetching release notes. Please try again.</span>
+                <button class="alert-close"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <!-- Feed Content Area -->
+            <div class="feed-header">
+                <h2>Release Notes Feed</h2>
+                <div class="feed-meta" id="feed-subtitle">Fetching notes...</div>
+            </div>
+
+            <!-- Loading View -->
+            <div id="loading-state" class="loading-state">
+                <div class="radar-spinner">
+                    <div class="circle"></div>
+                    <div class="circle"></div>
+                    <div class="circle"></div>
+                    <i class="fa-solid fa-satellite"></i>
+                </div>
+                <h3>Scanning Google Cloud RSS Feed...</h3>
+                <p>Retrieving the latest updates for Google BigQuery.</p>
+            </div>
+
+            <!-- Empty View -->
+            <div id="empty-state" class="empty-state" style="display: none;">
+                <div class="empty-icon">
+                    <i class="fa-regular fa-folder-open"></i>
+                </div>
+                <h3>No matching release notes found</h3>
+                <p>Try adjusting your search filters or refresh the feed.</p>
+            </div>
+
+            <!-- Scrollable Cards Feed -->
+            <div id="cards-container" class="cards-container" style="display: none;">
+                <!-- Cards injected via JS -->
+            </div>
+        </main>
+
+        <!-- Tweet Composition Drawer / Modal -->
+        <div id="tweet-drawer" class="tweet-drawer">
+            <div class="drawer-header">
+                <h3><i class="fa-brands fa-x-twitter"></i> Compose Update Post</h3>
+                <button id="close-drawer-btn" class="close-btn">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+            <div class="drawer-body">
+                <div class="origin-note-preview">
+                    <span class="preview-label">Selected Update Source</span>
+                    <div class="source-card">
+                        <div class="source-meta">
+                            <span id="source-date" class="source-date">Date</span>
+                            <span id="source-category" class="badge">Category</span>
+                        </div>
+                        <div id="source-text" class="source-text">Original text content...</div>
+                    </div>
+                </div>
+
+                <div class="composer-section">
+                    <label for="tweet-textarea" class="composer-label">
+                        <span>Post Text</span>
+                        <span id="char-counter" class="char-counter">0 / 280</span>
+                    </label>
+                    <textarea id="tweet-textarea" rows="8" placeholder="Draft your tweet here..."></textarea>
+                    
+                    <div class="text-format-actions">
+                        <button class="btn btn-sm btn-outline" id="format-action-shorten" title="Create a summarized version">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> Auto-Draft
+                        </button>
+                        <button class="btn btn-sm btn-outline" id="format-action-bullets" title="Format main points">
+                            <i class="fa-solid fa-list-ul"></i> Bullits Format
+                        </button>
+                        <button class="btn btn-sm btn-outline" id="format-action-clear" title="Reset post text">
+                            <i class="fa-solid fa-rotate-left"></i> Reset
+                        </button>
+                    </div>
+                </div>
+
+                <div class="drawer-actions">
+                    <button id="copy-tweet-btn" class="btn btn-secondary">
+                        <i class="fa-regular fa-copy"></i> Copy Post
+                    </button>
+                    <button id="send-tweet-btn" class="btn btn-twitter">
+                        <i class="fa-brands fa-x-twitter"></i> Post to X
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Backdrop for Drawer on Smaller Screens -->
+        <div id="drawer-backdrop" class="drawer-backdrop"></div>
+    </div>
+
+    <!-- Application Logic Script -->
+    <script src="/static/app.js"></script>
+</body>
+</html>
