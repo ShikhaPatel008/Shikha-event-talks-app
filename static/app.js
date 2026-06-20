@@ -419,12 +419,18 @@ function updateCharCount() {
     const len = elements.tweetTextarea.value.length;
     elements.charCounter.textContent = `${len} / 280`;
     
-    // Styling thresholds
+    // Styling thresholds & button state
     elements.charCounter.classList.remove('warning', 'danger');
     if (len > 280) {
         elements.charCounter.classList.add('danger');
-    } else if (len > 250) {
-        elements.charCounter.classList.add('warning');
+        elements.sendTweetBtn.disabled = true;
+    } else if (len === 0) {
+        elements.sendTweetBtn.disabled = true;
+    } else {
+        elements.sendTweetBtn.disabled = false;
+        if (len > 250) {
+            elements.charCounter.classList.add('warning');
+        }
     }
 }
 
