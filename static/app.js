@@ -51,12 +51,19 @@ const elements = {
 
 // Initialize App
 document.addEventListener('DOMContentLoaded', () => {
-    // Load saved theme
-    const savedTheme = localStorage.getItem('theme');
-    if (savedTheme === 'light') {
-        elements.themeCheckbox.checked = true;
-        document.body.classList.add('light-theme');
-    }
+    // Load saved theme from Database
+    fetch('/api/settings')
+        .then(r => r.json())
+        .then(data => {
+            if (data.theme === 'light') {
+                elements.themeCheckbox.checked = true;
+                document.body.classList.add('light-theme');
+            } else {
+                elements.themeCheckbox.checked = false;
+                document.body.classList.remove('light-theme');
+            }
+        })
+        .catch(err => console.error("Error loading theme from DB:", err));
     
     fetchReleases();
     setupEventListeners();
@@ -453,15 +460,24 @@ function sendTweetToTwitter() {
     window.open(twitterUrl, '_blank');
 }
 
-// Toggle light/dark theme switch
+// Toggle light/dark theme switch (syncs to backend Database)
 function toggleTheme(e) {
+    const theme = e.target.checked ? 'light' : 'dark';
+    
     if (e.target.checked) {
         document.body.classList.add('light-theme');
-        localStorage.setItem('theme', 'light');
     } else {
         document.body.classList.remove('light-theme');
-        localStorage.setItem('theme', 'dark');
     }
+    
+    // Save setting to backend DB (updates Supabase / SQLite)
+    fetch('/api/settings', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ theme: theme })
+    }).catch(err => console.error("Error saving theme setting to DB:", err));
 }
 
 // Client side CSV export engine
