@@ -27,6 +27,8 @@ const elements = {
     loadingState: document.getElementById('loading-state'),
     emptyState: document.getElementById('empty-state'),
     cardsContainer: document.getElementById('cards-container'),
+    exportCsvBtn: document.getElementById('export-csv-btn'),
+    themeCheckbox: document.getElementById('theme-checkbox'),
     
     // Tweet Drawer Elements
     tweetDrawer: document.getElementById('tweet-drawer'),
@@ -48,6 +50,13 @@ const elements = {
 
 // Initialize App
 document.addEventListener('DOMContentLoaded', () => {
+    // Load saved theme
+    const savedTheme = localStorage.getItem('theme');
+    if (savedTheme === 'light') {
+        elements.themeCheckbox.checked = true;
+        document.body.classList.add('light-theme');
+    }
+    
     fetchReleases();
     setupEventListeners();
 });
@@ -98,6 +107,10 @@ function setupEventListeners() {
     elements.formatShortenBtn.addEventListener('click', () => formatDraft('shorten'));
     elements.formatBulletsBtn.addEventListener('click', () => formatDraft('bullets'));
     elements.formatClearBtn.addEventListener('click', () => formatDraft('clear'));
+    
+    // Export and Theme switches
+    elements.exportCsvBtn.addEventListener('click', exportToCSV);
+    elements.themeCheckbox.addEventListener('change', toggleTheme);
     
     // Post and Copy
     elements.copyTweetBtn.addEventListener('click', copyTweetToClipboard);
@@ -249,18 +262,31 @@ function renderCards() {
             </div>
             <div class="card-footer">
                 <span class="text-muted" style="font-size: 11px;">ID: #${update.id}</span>
-                <button class="btn btn-sm btn-twitter tweet-trigger-btn">
-                    <i class="fa-brands fa-x-twitter"></i>
-                    <span>Tweet This</span>
-                </button>
+                <div style="display: flex; gap: 8px;">
+                    <button class="btn btn-sm btn-secondary copy-card-btn">
+                        <i class="fa-regular fa-copy"></i>
+                        <span>Copy Note</span>
+                    </button>
+                    <button class="btn btn-sm btn-twitter tweet-trigger-btn">
+                        <i class="fa-brands fa-x-twitter"></i>
+                        <span>Tweet This</span>
+                    </button>
+                </div>
             </div>
         `;
         
-        // Wire copy button
+        // Wire top copy icon button
         card.querySelector('.copy-item-btn').addEventListener('click', (e) => {
             e.stopPropagation();
             navigator.clipboard.writeText(update.text);
             showFeedbackTooltip(e.currentTarget, '<i class="fa-solid fa-check"></i>');
+        });
+        
+        // Wire explicit copy button
+        card.querySelector('.copy-card-btn').addEventListener('click', (e) => {
+            e.stopPropagation();
+            navigator.clipboard.writeText(update.text);
+            showFeedbackTooltip(e.currentTarget, '<i class="fa-solid fa-check"></i> Copied!');
         });
         
         // Wire tweet trigger
@@ -403,3 +429,49 @@ function sendTweetToTwitter() {
     const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}`;
     window.open(twitterUrl, '_blank');
 }
+
+// Toggle light/dark theme switch
+function toggleTheme(e) {
+    if (e.target.checked) {
+        document.body.classList.add('light-theme');
+        localStorage.setItem('theme', 'light');
+    } else {
+        document.body.classList.remove('light-theme');
+        localStorage.setItem('theme', 'dark');
+    }
+}
+
+// Client side CSV export engine
+function exportToCSV() {
+    if (updatesState.filteredUpdates.length === 0) return;
+    
+    // Define headers
+    const headers = ["ID", "Date", "Category", "Clean Text", "Link"];
+    
+    // Map rows
+    const rows = updatesState.filteredUpdates.map(item => [
+        item.id,
+        item.date,
+        item.category,
+        item.text.replace(/"/g, '""'), // escape quotes
+        item.link
+    ]);
+    
+    // Construct CSV String
+    const csvContent = [
+        headers.join(","),
+        ...rows.map(row => row.map(val => `"${val}"`).join(","))
+    ].join("\n");
+    
+    // Trigger download
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", `bigquery_release_notes_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+

@@ -35,10 +35,14 @@
 
             <div class="sidebar-content">
                 <!-- Action Controls -->
-                <div class="control-group">
+                <div class="control-group" style="display: flex; flex-direction: column; gap: 10px;">
                     <button id="refresh-btn" class="btn btn-primary btn-block">
                         <i id="spinner-icon" class="fa-solid fa-arrows-rotate"></i>
                         <span>Refresh Feed</span>
+                    </button>
+                    <button id="export-csv-btn" class="btn btn-secondary btn-block">
+                        <i class="fa-solid fa-file-csv"></i>
+                        <span>Export to CSV</span>
                     </button>
                 </div>
 
@@ -113,7 +117,18 @@
 
             <!-- Feed Content Area -->
             <div class="feed-header">
-                <h2>Release Notes Feed</h2>
+                <div class="feed-header-title-row">
+                    <h2>Release Notes Feed</h2>
+                    <!-- Theme Toggle Switch -->
+                    <div class="theme-switch-wrapper">
+                        <span class="theme-icon moon-icon"><i class="fa-regular fa-moon"></i></span>
+                        <label class="theme-switch" for="theme-checkbox">
+                            <input type="checkbox" id="theme-checkbox" />
+                            <div class="slider round"></div>
+                        </label>
+                        <span class="theme-icon sun-icon"><i class="fa-regular fa-sun"></i></span>
+                    </div>
+                </div>
                 <div class="feed-meta" id="feed-subtitle">Fetching notes...</div>
             </div>
 

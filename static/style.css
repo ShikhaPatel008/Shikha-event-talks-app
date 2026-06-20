@@ -36,6 +36,27 @@
 }
 
 /* ==========================================================================
+   Light Theme Variable Overrides
+   ========================================================================== */
+body.light-theme {
+    --bg-base: #f0f2f8;
+    --bg-surface: #ffffff;
+    --bg-card: rgba(255, 255, 255, 0.8);
+    --border-color: rgba(0, 0, 0, 0.08);
+    --border-glow: rgba(59, 130, 246, 0.15);
+    
+    --text-primary: #1e293b;
+    --text-secondary: #475569;
+    --text-muted: #64748b;
+    
+    --feature-bg: rgba(16, 185, 129, 0.08);
+    --issue-bg: rgba(239, 68, 68, 0.08);
+    --announcement-bg: rgba(59, 130, 246, 0.08);
+    --general-bg: rgba(139, 92, 246, 0.08);
+}
+
+
+/* ==========================================================================
    Reset & Core Styling
    ========================================================================== */
 * {
@@ -941,3 +962,97 @@ body {
         grid-template-columns: 1fr;
     }
 }
+
+/* ==========================================================================
+   Theme Switcher Styles
+   ========================================================================== */
+.feed-header-title-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 16px;
+}
+
+.theme-switch-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.theme-icon {
+    font-size: 14px;
+    color: var(--text-muted);
+    transition: var(--transition-fast);
+}
+
+body:not(.light-theme) .moon-icon {
+    color: var(--primary);
+    filter: drop-shadow(0 0 4px var(--primary-glow));
+}
+
+body.light-theme .sun-icon {
+    color: #eab308;
+    filter: drop-shadow(0 0 4px rgba(234, 179, 8, 0.4));
+}
+
+.theme-switch {
+    display: inline-block;
+    height: 24px;
+    position: relative;
+    width: 48px;
+}
+
+.theme-switch input {
+    display: none;
+}
+
+.slider {
+    background-color: rgba(255, 255, 255, 0.05);
+    bottom: 0;
+    cursor: pointer;
+    left: 0;
+    position: absolute;
+    right: 0;
+    top: 0;
+    transition: .4s;
+    border: 1px solid var(--border-color);
+}
+
+body.light-theme .slider {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.slider:before {
+    background-color: var(--text-secondary);
+    bottom: 3px;
+    content: "";
+    height: 16px;
+    left: 3px;
+    position: absolute;
+    transition: .4s;
+    width: 16px;
+}
+
+input:checked + .slider {
+    background-color: var(--primary-glow);
+}
+
+input:checked + .slider:before {
+    transform: translateX(24px);
+    background-color: var(--primary);
+}
+
+body.light-theme input:checked + .slider:before {
+    background-color: #eab308;
+}
+
+.slider.round {
+    border-radius: 34px;
+}
+
+.slider.round:before {
+    border-radius: 50%;
+}
+
